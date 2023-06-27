@@ -8,7 +8,7 @@ import { keccak256 } from "ethereum-cryptography/keccak.js";
 import bcrypt from "bcrypt";
 
 const app = express();
-const port = 3042;
+const port = process.env.PORT || 3042; // Use the provided PORT environment variable, or fallback to 3042
 
 app.use(cors());
 app.use(json());
