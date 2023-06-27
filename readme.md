@@ -1,14 +1,8 @@
-## ECDSA Node
+## Secure Mock Wallet
 
-This project is an example of using a client and server to facilitate transfers between different addresses. Since there is just a single server on the back-end handling transfers, this is clearly very centralized. We won't worry about distributed consensus for this project.
+This project is an example of using a client and server to facilitate transfers between different mock addresses. Any new user needs to create a new wallet by providing a new password and then will login using those generated wallet and used password and the will able to use the mock wallet with mock balances. For the storing of wallet address and password used MongoDB.
 
-However, something that we would like to incoporate is Public Key Cryptography. By using Elliptic Curve Digital Signatures we can make it so the server only allows transfers that have been signed for by the person who owns the associated address.
 
-### Video instructions
-For an overview of this project as well as getting started instructions, check out the following video:
-
-https://www.loom.com/share/0d3c74890b8e44a5918c4cacb3f646c4
- 
 ### Client
 
 The client folder contains a [react app](https://reactjs.org/) using [vite](https://vitejs.dev/). To get started, follow these steps:
