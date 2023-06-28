@@ -48,7 +48,6 @@ function Wallet({ address, setAddress, balance, setBalance }) {
           {
             headers: {
               "Content-Type": "application/json",
-              Origin: "https://secure-mock-wallet.vercel.app",
             },
           }
         );
