@@ -13,6 +13,14 @@ const port = process.env.PORT || 3042; // Use the provided PORT environment vari
 app.use(cors());
 app.use(json());
 
+app.use(function(req, res, next) {
+  res.setHeader('Access-Control-Allow-Origin', 'https://secure-mock-wallet.vercel.app');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
+
+
 const balances = {
   "03f45c3885e27b26dc09e8d4a717d46dd6c320ac55b1a28f25ba1e429068843689": 100,
   "0370e86516aa1e7f6cf57cd35b5a89d0aa4bf26ea7145ccdec3a38c1eefe10e30f": 50,
