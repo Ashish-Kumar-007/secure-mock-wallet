@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: true,
+    min: 8
   },
   balance: {
     type: Number,
@@ -17,5 +18,4 @@ const userSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model('User', userSchema);
-
-module.exports = User;
+export default User;
