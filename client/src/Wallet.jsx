@@ -42,7 +42,16 @@ function Wallet({ address, setAddress, balance, setBalance }) {
         return;
       }
       try {
-        const response = await server.post("/generate", { password });
+        const response = await server.post(
+          "/generate",
+          { password },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Origin: "https://secure-mock-wallet.vercel.app",
+            },
+          }
+        );
         console.log(response.data);
         setIsSuccess(true);
         setWalletAddress(response.data.walletAddress);
@@ -59,10 +68,9 @@ function Wallet({ address, setAddress, balance, setBalance }) {
     }
   };
 
-  const logInWallet = async(e) => {
+  const logInWallet = async (e) => {
     e.preventDefault();
-    
-  }
+  };
 
   return (
     <div className="container wallet">
@@ -74,7 +82,14 @@ function Wallet({ address, setAddress, balance, setBalance }) {
         }}
       />
       {isSuccess ? (
-        <div style={{ display: "flex", justifyContent:"space-between", alignItems: "center", marginTop:"5px"}}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: "5px",
+          }}
+        >
           <small style={{ marginRight: "8px" }}>{walletAddress}</small>
           <button
             onClick={() => handleCopy(walletAddress)}
