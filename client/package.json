@@ -1,5 +1,5 @@
 {
-  "name": "ecdsa-node",
+  "name": "secure-mock-wallet",
   "private": true,
   "version": "0.0.0",
   "type": "module",
