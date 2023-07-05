@@ -1,7 +1,8 @@
 import { useState } from "react";
 import server from "./server";
+import { toast } from "react-toastify";
 
-function Transfer({ address, setBalance }) {
+function Transfer({ address, setBalance, isLoggedIn }) {
   const [sendAmount, setSendAmount] = useState("");
   const [recipient, setRecipient] = useState("");
 
@@ -11,16 +12,17 @@ function Transfer({ address, setBalance }) {
     evt.preventDefault();
 
     try {
-      const {
-        data: { balance },
-      } = await server.post(`send`, {
-        sender: address,
-        amount: parseInt(sendAmount),
-        recipient,
+      const response = await server.post("/transfer", {
+        fromAccount: address,
+        toAccount: recipient,
+        amount: sendAmount,
       });
-      setBalance(balance);
+      const { data } = response;
+      console.log(response);
+      toast.success(data.message);
     } catch (ex) {
-      alert(ex.response.data.message);
+      // alert(ex.response.data.message);
+      toast.error(ex.response.data.message);
     }
   }
 
@@ -34,6 +36,7 @@ function Transfer({ address, setBalance }) {
           placeholder="1, 2, 3..."
           value={sendAmount}
           onChange={setValue(setSendAmount)}
+          disabled={!isLoggedIn}
         ></input>
       </label>
 
@@ -43,10 +46,16 @@ function Transfer({ address, setBalance }) {
           placeholder="Type an address, for example: 0x2"
           value={recipient}
           onChange={setValue(setRecipient)}
+          disabled={!isLoggedIn}
         ></input>
       </label>
 
-      <input type="submit" className="button" value="Transfer" />
+      <input
+        type="submit"
+        className="button"
+        value="Transfer"
+        disabled={!isLoggedIn}
+      />
     </form>
   );
 }
