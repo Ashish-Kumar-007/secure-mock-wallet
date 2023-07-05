@@ -16,7 +16,7 @@ label {
 
 .app {
   display: flex;
-  max-width: 1400px;
+  max-width: 1600px;
   flex-wrap: wrap;
   gap: 12px;
   margin: 0 auto;
@@ -25,6 +25,7 @@ label {
 .container {
   flex-grow: 1;
   margin: 0 20px;
+  max-width: 60%;
   background-color: #fff;
   border: 1px solid #cbd5e0;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -47,6 +48,7 @@ input {
   background-color: #fdfdfe;
   padding-inline-start: 0.75rem;
   font-size: 0.875rem;
+  outline: none;
 }
 
 .button {
@@ -65,6 +67,21 @@ input {
     background-color: #196968;
   }
 }
+
+.truncate-text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  position: relative;
+  width: 100%;
+}
+
+.truncate-text::after {
+  content: "........";
+  position: absolute;
+  background-color: white;
+}
+
 
 .wallet {
   display: flex;
@@ -85,4 +102,14 @@ input {
 .transfer {
   display: flex;
   flex-direction: column;
+}
+
+// Navbar styles
+.navbar {
+  background-color: #f0f0f0;
+  height: 60px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
 }

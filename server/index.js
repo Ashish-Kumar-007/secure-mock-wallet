@@ -6,19 +6,24 @@ import { keccak256 } from "ethereum-cryptography/keccak.js";
 import bcrypt from "bcrypt";
 import User from "./models/userModel.js";
 import connectDB from "./ConnectDB/connect.js";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
+import cookieParser from "cookie-parser";
 
 const app = express();
+app.use(cookieParser());
 const port = process.env.PORT || 3042;
 
-app.use(cors());
+app.use(cors({ origin: "http://127.0.0.1:5173" }));
 app.use(express.json());
 connectDB();
 
 app.use(function (req, res, next) {
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "https://secure-mock-wallet.vercel.app"
-  );
+  // res.setHeader(
+  //   "Access-Control-Allow-Origin",
+  //   "https://secure-mock-wallet.vercel.app"
+  // );
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   next();
@@ -33,7 +38,7 @@ app.get("/balance/:address", (req, res) => {
 app.post("/generate", (req, res) => {
   const privateKey = secp256k1.utils.randomPrivateKey();
   const publicKey = secp256k1.getPublicKey(privateKey);
-
+  console.log(req.body);
   const slicedPublicKey = publicKey.slice(1);
   const hashedPublicKey = keccak256(slicedPublicKey);
   const ethereumAddress = toHex(hashedPublicKey.slice(-20));
@@ -70,16 +75,29 @@ app.post("/generate", (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-  const { walletAddress, password } = req.body;
-
+  const { wallet, password } = req.body;
+  console.log(req.body);
   try {
-    const user = await User.findOne({ walletAddress });
-
+    const user = await User.findOne({ walletAddress: wallet });
     if (user) {
       const isPasswordValid = await bcrypt.compare(password, user.password);
-
+      console.log(isPasswordValid);
       if (isPasswordValid) {
-        res.status(200).json({ message: "Login successful" });
+        const payload = {
+          walletAddress: user.walletAddress,
+          password: user.password,
+        };
+
+        // Generate a token with a secret key and expiration time
+
+        const token = jwt.sign(payload, process.env.JWT_SECRET);
+
+        res.cookie("token", token, { httpOnly: true, secure: false });
+        res.status(200).json({
+          token: token,
+          balance: user.balance,
+          message: "Login successful",
+        });
       } else {
         res.status(401).json({ error: "Invalid credentials" });
       }
@@ -91,26 +109,53 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.post("/send", (req, res) => {
-  const { sender, recipient, amount } = req.body;
-
-  setInitialBalance(sender);
-  setInitialBalance(recipient);
-
-  if (balances[sender] < amount) {
-    res.status(400).send({ message: "Not enough funds!" });
-  } else {
-    balances[sender] -= amount;
-    balances[recipient] += amount;
-    res.send({ balance: balances[sender] });
-  }
+app.get("/logout", (req, res) => {
+  res.cookie("token", null, { maxAge: "1" });
+  res.status(200).json({
+    balance: "0",
+    message: "Logout successful",
+  });
 });
 
-function setInitialBalance(address) {
-  if (!balances[address]) {
-    balances[address] = 0;
+app.post("/transfer", async (req, res) => {
+  try {
+    const { fromAccount, toAccount, amount } = req.body;
+
+    // Verify the authentication token
+    // const token = req.headers.authorization.split(" ")[1]; // Assuming the token is sent in the Authorization header
+    // const decoded = jwt.verify(token, process.env.JWT_SECRET); // Replace with your secret key
+
+    const user = await User.findOne({ walletAddress: fromAccount });
+
+    // Verify that the user is the owner of the "from" account
+    if (user.walletAddress !== fromAccount) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    // Check if the user has sufficient balance for the transfer
+    if (user.balance < amount) {
+      res.status(400).json({ message: "Insufficient balance" });
+      return;
+    }
+
+    // Perform the transfer
+    const updatedBalance = user.balance - amount;
+    await User.updateOne(
+      { walletAddress: fromAccount },
+      { balance: updatedBalance }
+    );
+    await User.updateOne(
+      { walletAddress: toAccount },
+      { $inc: { balance: amount } }
+    );
+
+    res.status(200).json({ message: "Transfer successful" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
   }
-}
+});
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}!`);
