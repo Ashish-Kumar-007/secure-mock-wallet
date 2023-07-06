@@ -1,7 +1,8 @@
 import { useState } from "react";
 import server from "./server";
 import { toast } from "react-toastify";
-import { TbClipboardCopy } from "react-icons/tb";
+import { TbClipboardCopy, TbClipboardCheck } from "react-icons/tb";
+import cookies from "js-cookie";
 
 function Wallet({ loggedIn, setLoggedIn, setAddress }) {
   const [password, setPassword] = useState("");
@@ -19,7 +20,6 @@ function Wallet({ loggedIn, setLoggedIn, setAddress }) {
       .then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000); // Reset "copied" state after 2 seconds
-        toast.success("copied!");
       })
       .catch((error) => {
         console.error("Error copying text:", error);
@@ -60,7 +60,7 @@ function Wallet({ loggedIn, setLoggedIn, setAddress }) {
         setIsSuccess(true);
         setWalletAddress(response.data.walletAddress);
         toast.success("Wallet created! 🎉");
-
+        setPassword("")
         // Handle the response from the backend
       } catch (error) {
         console.error(error);
@@ -85,11 +85,12 @@ function Wallet({ loggedIn, setLoggedIn, setAddress }) {
         if (response.status === 200) {
           // Store the received JWT token in localStorage or as a secure cookie
           // localStorage.setItem("token", data.token);
+          cookies.set("token", data.token);
           setIsLoggedIn(true);
           setLoggedIn(true);
-          setAddress(wallet)
+          setAddress(wallet);
           setBalance(data.balance);
-          toast.success(`${data.message} 🎉`);
+          toast.success(`${data.message}✔️`);
         } else {
           // Handle authentication failure
           console.log(data.message);
@@ -117,9 +118,9 @@ function Wallet({ loggedIn, setLoggedIn, setAddress }) {
         // Store the received JWT token in localStorage or as a secure cookie
         setIsLoggedIn(false);
         setLoggedIn(false);
-        setAddress("")
+        setAddress("");
         setBalance(data.balance);
-        toast.success(`${data.message} 🎉`);
+        toast.success(`${data.message}✔️`);
       } else {
         // Handle authentication failure
         console.log(data.message);
@@ -134,90 +135,101 @@ function Wallet({ loggedIn, setLoggedIn, setAddress }) {
   };
 
   return (
-    <div className="container wallet">
-      <input
-        type="text"
-        placeholder="Enter password"
-        onChange={(e) => {
-          setPassword(e.target.value);
-        }}
-      />
-      {isSuccess ? (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: "5px",
-          }}
-        >
-          <small className="truncate-text">{walletAddress}</small>
-          <button
-            onClick={() => handleCopy(walletAddress)}
-            style={{
-              backgroundColor: "#319795",
-              color: "white",
-              border: "none",
-              padding: "2px 5px",
-              borderRadius: "4px",
-              cursor: "pointer",
+    <div className="container border bg-gray-200 rounded-lg p-4 lg:w-[600px] w-80 ">
+      <div className="container bg-gray-200 rounded-lg p-2">
+        <div className="flex flex-col">
+          <input
+            type="text"
+            placeholder="Enter password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
             }}
-          >
-            <TbClipboardCopy size={15} />
-          </button>
+            className="border border-gray-300 rounded p-2 mb-4 focus:outline-none focus:border-teal-500"
+          />
+          {isSuccess ? (
+            <div className="flex justify-between items-center mt-1">
+              <small className="truncate text-gray-700 w-60">
+                {walletAddress}
+              </small>
+              <button
+                onClick={() => handleCopy(walletAddress)}
+                className="bg-teal-500 text-white border-none px-2 py-1 rounded cursor-pointer"
+              >
+                {copied ? (
+                  <TbClipboardCheck size={20} />
+                ) : (
+                  <TbClipboardCopy size={20} />
+                )}
+              </button>
+            </div>
+          ) : null}
         </div>
-      ) : null}
 
-      <button
-        type="submit"
-        className="button"
-        onClick={(e) => {
-          generateWallet(e);
-        }}
-      >
-        Generate Wallet
-      </button>
-
-      <h1>Your Wallet</h1>
-
-      <label>
-        Wallet Address
-        <input
-          placeholder="Enter Wallet Address"
-          onChange={(e) => setwallet(e.target.value)}
-        ></input>
-      </label>
-
-      <label>
-        Password
-        <input
-          placeholder="Enter Password"
-          onChange={(e) => setLogInPswd(e.target.value)}
-        ></input>
-      </label>
-      {isLoggedIn ? (
         <button
           type="submit"
-          className="button"
+          className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded mt-4 w-full"
           onClick={(e) => {
-            logOutWallet(e);
+            generateWallet(e);
           }}
+          disabled = {isSuccess}
         >
-          Log out
+          Generate Wallet
         </button>
-      ) : (
-        <button
-          type="submit"
-          className="button"
-          onClick={(e) => {
-            logInWallet(e);
-          }}
-        >
-          Log in
-        </button>
-      )}
+      </div>
 
-      <div className="balance">Balance: {balance}</div>
+      <h1 className="text-3xl font-bold mt-4 text-gray-800 mb-2">
+        Your Wallet
+      </h1>
+      <hr className="border-gray-500" />
+
+      <div className="container bg-gray-200 rounded-lg p-2">
+        <div className="flex flex-col">
+          <label className="block mt-4">
+            <span className="mb-2">Wallet Address:</span>
+          </label>
+          <input
+            placeholder="Enter Wallet Address"
+            onChange={(e) => setwallet(e.target.value)}
+            className="border border-gray-300 rounded p-2 mt-2 focus:outline-none focus:border-teal-500"
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label className="block mt-4">Password:</label>
+          <input
+            placeholder="Enter Password"
+            onChange={(e) => setLogInPswd(e.target.value)}
+            className="border border-gray-300 rounded p-2 mt-2 focus:outline-none focus:border-teal-500"
+          />
+
+          {isLoggedIn ? (
+            <button
+              type="submit"
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded mt-4 w-full"
+              onClick={(e) => {
+                logOutWallet(e);
+              }}
+            >
+              Log out
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded mt-4 w-full"
+              onClick={(e) => {
+                logInWallet(e);
+              }}
+            >
+              Log in
+            </button>
+          )}
+        </div>
+
+        <div className="balance mt-4 bg-gray-300 p-2 text-gray-700">
+          Balance: {balance}
+        </div>
+      </div>
     </div>
   );
 }

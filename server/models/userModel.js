@@ -1,21 +1,26 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
   walletAddress: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+  },
+  privateKey: {
+    type: String,
+    required: true,
+    unique: true,
   },
   password: {
     type: String,
     required: true,
-    min: 8
+    min: 8,
   },
   balance: {
     type: Number,
-    required: true
-  }
+    required: true,
+  },
 });
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 export default User;
