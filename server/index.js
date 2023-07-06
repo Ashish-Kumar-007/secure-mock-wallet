@@ -15,7 +15,8 @@ const app = express();
 app.use(cookieParser());
 const port = process.env.PORT || 3042;
 
-app.use(cors({ origin: "http://127.0.0.1:5173" }));
+// app.use(cors({ origin: "http://127.0.0.1:5173" }));
+app.use(cors({ origin: "https://secure-mock-wallet.vercel.app/" }));
 app.use(express.json());
 connectDB();
 
@@ -92,7 +93,7 @@ app.post("/login", async (req, res) => {
 
         const token = jwt.sign(payload, process.env.JWT_SECRET);
 
-        res.cookie("token", token, { httpOnly: true, secure: false });
+        res.cookie("token", token, { httpOnly: true, secure: true });
         res.status(200).json({
           token: token,
           balance: user.balance,
