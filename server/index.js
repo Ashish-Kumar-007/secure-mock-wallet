@@ -13,27 +13,21 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 app.use(cookieParser());
-const port = process.env.PORT || 3042;
+const port = 3042;
 
-app.use(cors({ origin: "http://localhost:5173" }));
-// app.use(cors({ origin: "https://secure-mock-wallet.vercel.app/" }));
+app.use(
+  cors({
+    origin: ["https://secure-mock-wallet.vercel.app/", "http://localhost:5173"],
+    methods: ["GET, POST, PUT, DELETE"],
+    credentials: true
+  })
+);
 app.use(express.json());
 connectDB();
 
-app.use(function (req, res, next) {
-  // res.setHeader(
-  //   "Access-Control-Allow-Origin",
-  //   "https://secure-mock-wallet.vercel.app"
-  // );
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  next();
-});
 
-app.get("/balance/:address", (req, res) => {
-  const { address } = req.params;
-  const balance = balances[address] || 0;
-  res.send({ balance });
+app.get("/", (req, res) => {
+  res.json({ message: "API workin!" });
 });
 
 app.post("/generate", (req, res) => {
