@@ -17,7 +17,7 @@ const port = 3042;
 
 app.use(
   cors({
-    origin: ["https://secure-mock-wallet.vercel.app/", "http://localhost:5173"],
+    origin: ["https://secure-mock-wallet.vercel.app", "http://localhost:5173"],
     methods: ["GET, POST, PUT, DELETE"],
     credentials: true
   })
