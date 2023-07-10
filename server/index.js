@@ -8,83 +8,103 @@ import User from "./models/userModel.js";
 import connectDB from "./ConnectDB/connect.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-dotenv.config();
 import cookieParser from "cookie-parser";
 
+dotenv.config();
+
+// Initialize the express app
 const app = express();
 app.use(cookieParser());
 const port = 3042;
 
+// Enable CORS with specific origins, methods, and credentials
 app.use(
   cors({
     origin: ["https://secure-mock-wallet.vercel.app", "http://localhost:5173"],
-    methods: ["GET, POST, PUT, DELETE"],
-    credentials: true
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   })
 );
+
+// Parse JSON request bodies
 app.use(express.json());
+
+// Connect to the database
 connectDB();
 
-
+// Define the root route
 app.get("/", (req, res) => {
-  res.json({ message: "API workin!" });
+  res.json({ message: "API working!" });
 });
 
-app.post("/generate", (req, res) => {
-  const privateKey = secp256k1.utils.randomPrivateKey();
-  const publicKey = secp256k1.getPublicKey(privateKey);
-  console.log(req.body);
-  const slicedPublicKey = publicKey.slice(1);
-  const hashedPublicKey = keccak256(slicedPublicKey);
-  const ethereumAddress = toHex(hashedPublicKey.slice(-20));
+app.post("/demo", async (req, res) => {
   const { password } = req.body;
+  const newUser = new User({
+    walletAddress: `0x5A977161C160124802053BA85EF735eCC50d0175`,
+    privateKey: "privateKey",
+    password: password,
+    balance: 100,
+  });
 
-  bcrypt.hash(password, 10, (err, hashedPassword) => {
-    if (err) {
-      console.error("Error encrypting password:", err);
-      res.status(500).send({ message: "Error encrypting password" });
-    } else {
-      const newUser = new User({
-        walletAddress: `0x${ethereumAddress}`,
-        privateKey: privateKey,
-        password: hashedPassword,
-        balance: 100,
-      });
+  await newUser.save();
 
-      newUser
-        .save()
-        .then(() => {
-          console.log("User created and saved to the database");
-          res.status(200).send({
-            message: "User created and saved",
-            walletAddress: `0x${ethereumAddress}`,
-          });
-        })
-        .catch((error) => {
-          console.error("Error saving user to the database:", error);
-          res
-            .status(500)
-            .send({ message: "Error saving user to the database" });
-        });
-    }
+  console.log("User created and saved to the database");
+  res.status(200).send({
+    message: "User created and saved",
+    walletAddress: `0x5A977161C160124802053BA85EF735eCC50d0175`,
   });
 });
 
-app.post("/login", async (req, res) => {
-  const { wallet, password } = req.body;
-  console.log(req.body);
+// Route for generating a user
+app.post("/generate", async (req, res) => {
   try {
+    const privateKey = secp256k1.utils.randomPrivateKey();
+    const publicKey = secp256k1.getPublicKey(privateKey);
+    console.log(req.body);
+    const slicedPublicKey = publicKey.slice(1);
+    const hashedPublicKey = keccak256(slicedPublicKey);
+    const ethereumAddress = toHex(hashedPublicKey.slice(-20));
+    const { password } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      walletAddress: `0x${ethereumAddress}`,
+      privateKey: privateKey,
+      password: hashedPassword,
+      balance: 100,
+    });
+
+    await newUser.save();
+
+    console.log("User created and saved to the database");
+    res.status(200).send({
+      message: "User created and saved",
+      walletAddress: `0x${ethereumAddress}`,
+    });
+  } catch (error) {
+    console.error("Error saving user to the database:", error);
+    res.status(500).send({ message: "Error saving user to the database" });
+  }
+});
+
+// Route for user login
+app.post("/login", async (req, res) => {
+  try {
+    const { wallet, password } = req.body;
+    console.log(req.body);
+
     const user = await User.findOne({ walletAddress: wallet });
+
     if (user) {
       const isPasswordValid = await bcrypt.compare(password, user.password);
       console.log(isPasswordValid);
+
       if (isPasswordValid) {
         const payload = {
           walletAddress: user.walletAddress,
           password: user.password,
         };
-
-        // Generate a token with a secret key and expiration time
 
         const token = jwt.sign(payload, process.env.JWT_SECRET);
 
@@ -105,49 +125,47 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// Route for user logout
 app.get("/logout", (req, res) => {
-  // res.cookie("token", null, { maxAge: "1" });
   res.status(200).json({
     balance: "0",
     message: "Logout successful",
   });
 });
 
+// Route for transferring funds
 app.post("/transfer", async (req, res) => {
   try {
     const { fromAccount, toAccount, amount } = req.body;
 
-    // Verify the authentication token
-    const token = req.headers.authorization.split(" ")[1]; // Assuming the token is sent in the Authorization header
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Replace with your secret key
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log(decoded);
+
     const user = await User.findOne({ walletAddress: decoded.walletAddress });
 
     const input = user.privateKey.toString();
     const numbers = input.split(",").map(Number);
     const bytes = new Uint8Array(numbers);
-    // console.log(bytes);
 
     const publicKey = secp256k1.getPublicKey(bytes);
     const slicedPublicKey = publicKey.slice(1);
     const hashedPublicKey = keccak256(slicedPublicKey);
     const ethereumAddress = `0x${toHex(hashedPublicKey.slice(-20))}`;
 
-    // Verify that the user is the owner of the "from" account
     if (user.walletAddress !== fromAccount) {
       res.status(401).json({ message: "Unauthorized" });
       return;
     }
 
-    // Check if the user has sufficient balance for the transfer
     if (user.balance < amount) {
       res.status(400).json({ message: "Insufficient balance" });
       return;
     }
 
     if (ethereumAddress === user.walletAddress) {
-      // Perform the transfer
       const updatedBalance = user.balance - amount;
+
       await User.updateOne(
         { walletAddress: fromAccount },
         { balance: updatedBalance }
@@ -167,6 +185,7 @@ app.post("/transfer", async (req, res) => {
   }
 });
 
+// Start the server
 app.listen(port, () => {
   console.log(`Listening on port ${port}!`);
 });
