@@ -135,7 +135,7 @@ function Wallet({ loggedIn, setLoggedIn, setAddress }) {
   };
 
   return (
-    <div className="container border bg-gray-200 rounded-lg p-4 lg:w-[600px] w-80 ">
+    <div className="container border bg-gray-200 rounded-lg p-4 h-[570px] lg:w-[600px] w-80 ">
       <div className="container bg-gray-200 rounded-lg p-2">
         <div className="flex flex-col">
           <input

@@ -37,24 +37,6 @@ app.get("/", (req, res) => {
   res.json({ message: "API working!" });
 });
 
-app.post("/demo", async (req, res) => {
-  const { password } = req.body;
-  const newUser = new User({
-    walletAddress: `0x5A977161C160124802053BA85EF735eCC50d0175`,
-    privateKey: "privateKey",
-    password: password,
-    balance: 100,
-  });
-
-  await newUser.save();
-
-  console.log("User created and saved to the database");
-  res.status(200).send({
-    message: "User created and saved",
-    walletAddress: `0x5A977161C160124802053BA85EF735eCC50d0175`,
-  });
-});
-
 // Route for generating a user
 app.post("/generate", async (req, res) => {
   try {

@@ -36,7 +36,7 @@ function Transfer({ address, setBalance, isLoggedIn }) {
   }
 
   return (
-    <div className="container border p-5 bg-gray-200 h-[530px] rounded-lg lg:w-[600px] w-80">
+    <div className="container border p-5 bg-gray-200 h-[570px] rounded-lg lg:w-[600px] w-80">
       <h1 className="text-3xl font-bold mb-2 text-gray-800">
         Send Transaction
       </h1>
