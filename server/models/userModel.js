@@ -6,10 +6,24 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  privateKey: {
+  publicKey: {
     type: String,
     required: true,
     unique: true,
+  },
+  r: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  s: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  recovery:{
+    type: Number,
+    required: true,
   },
   password: {
     type: String,

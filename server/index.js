@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { secp256k1 } from "ethereum-cryptography/secp256k1.js";
-import { toHex } from "ethereum-cryptography/utils.js";
+import { toHex, utf8ToBytes } from "ethereum-cryptography/utils.js";
 import { keccak256 } from "ethereum-cryptography/keccak.js";
 import bcrypt from "bcrypt";
 import User from "./models/userModel.js";
@@ -47,16 +47,23 @@ app.post("/generate", async (req, res) => {
     const hashedPublicKey = keccak256(slicedPublicKey);
     const ethereumAddress = toHex(hashedPublicKey.slice(-20));
     const { password } = req.body;
-
     const hashedPassword = await bcrypt.hash(password, 10);
-
+    const message = `This account belongs to ${publicKey} with wallet address 0x${ethereumAddress}`;
+    const msgByte = utf8ToBytes(message);
+    const hash = keccak256(msgByte);
+    console.log(`${message}: {hash}`);
+    // console.log(secp256k1.sign(hash, privateKey));
+    const signature = secp256k1.sign(hash, privateKey);
     const newUser = new User({
       walletAddress: `0x${ethereumAddress}`,
-      privateKey: privateKey,
+      publicKey: publicKey,
+      r: signature.r.toString(),
+      s: signature.s.toString(),
+      recovery: signature.recovery,
       password: hashedPassword,
       balance: 100,
     });
-
+    // console.log(newUser);
     await newUser.save();
 
     console.log("User created and saved to the database");
@@ -125,15 +132,31 @@ app.post("/transfer", async (req, res) => {
     console.log(decoded);
 
     const user = await User.findOne({ walletAddress: decoded.walletAddress });
-
-    const input = user.privateKey.toString();
+    const input = user.publicKey.toString();
     const numbers = input.split(",").map(Number);
-    const bytes = new Uint8Array(numbers);
+    const publicKey = new Uint8Array(numbers);
+    const message = `This account belongs to ${publicKey} with wallet address ${fromAccount}`
+    const msgByte = utf8ToBytes(
+      message
+    );
+    const msgHash = keccak256(msgByte);
+    console.log(message);
+    const signature = {
+      r: BigInt(user.r),
+      s: BigInt(user.s),
+      recovery: user.recovery,
+    };
+    console.log(signature);
+    const verifySign = secp256k1.verify(signature, msgHash, publicKey);
+    console.log(verifySign);
+    // const input = user.privateKey.toString();
+    // const numbers = input.split(",").map(Number);
+    // const bytes = new Uint8Array(numbers);
 
-    const publicKey = secp256k1.getPublicKey(bytes);
-    const slicedPublicKey = publicKey.slice(1);
-    const hashedPublicKey = keccak256(slicedPublicKey);
-    const ethereumAddress = `0x${toHex(hashedPublicKey.slice(-20))}`;
+    // const publicKey = secp256k1.getPublicKey(bytes);
+    // const slicedPublicKey = publicKey.slice(1);
+    // const hashedPublicKey = keccak256(slicedPublicKey);
+    // const ethereumAddress = `0x${toHex(hashedPublicKey.slice(-20))}`;
 
     if (user.walletAddress !== fromAccount) {
       res.status(401).json({ message: "Unauthorized" });
@@ -145,7 +168,7 @@ app.post("/transfer", async (req, res) => {
       return;
     }
 
-    if (ethereumAddress === user.walletAddress) {
+    if (verifySign) {
       const updatedBalance = user.balance - amount;
 
       await User.updateOne(

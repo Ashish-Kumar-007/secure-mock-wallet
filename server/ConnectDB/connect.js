@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 
 async function connectDB() {
+  console.log(process.env.PASSWORD);
   mongoose
     .connect(
-      "mongodb+srv://Ashish_NFThing:ujTWqq132bPAxKUn@cluster0.tcmf3.mongodb.net/?retryWrites=true&w=majority",
+      `mongodb+srv://Ashish_NFThing:${process.env.PASSWORD}@cluster0.tcmf3.mongodb.net/?retryWrites=true&w=majority`,
       {
         useNewUrlParser: true,
         useUnifiedTopology: true,
