@@ -149,15 +149,7 @@ app.post("/transfer", async (req, res) => {
     console.log(signature);
     const verifySign = secp256k1.verify(signature, msgHash, publicKey);
     console.log(verifySign);
-    // const input = user.privateKey.toString();
-    // const numbers = input.split(",").map(Number);
-    // const bytes = new Uint8Array(numbers);
-
-    // const publicKey = secp256k1.getPublicKey(bytes);
-    // const slicedPublicKey = publicKey.slice(1);
-    // const hashedPublicKey = keccak256(slicedPublicKey);
-    // const ethereumAddress = `0x${toHex(hashedPublicKey.slice(-20))}`;
-
+   
     if (user.walletAddress !== fromAccount) {
       res.status(401).json({ message: "Unauthorized" });
       return;
