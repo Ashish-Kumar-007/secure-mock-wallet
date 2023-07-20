@@ -17,21 +17,21 @@ app.use(cookieParser());
 const port = 3042;
 
 // Enable CORS with specific origins, methods, and credentials
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://secure-mock-wallet.vercel.app');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  next();
-});
-// app.use(
-//   cors({
-//     origin: "http://localhost:5173/",
-//     methods: ["GET", "POST", "PUT", "DELETE"],
-//     credentials: true,
-//     headers: "Content-Type",
-//   })
-// );
+// app.use((req, res, next) => {
+//   res.setHeader('Access-Control-Allow-Origin', 'https://secure-mock-wallet.vercel.app');
+//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+//   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+//   res.setHeader('Access-Control-Allow-Credentials', 'true');
+//   next();
+// });
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "https://secure-mock-wallet.vercel.app"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+    headers: "Content-Type",
+  })
+);
 
 // Parse JSON request bodies
 app.use(express.json());
