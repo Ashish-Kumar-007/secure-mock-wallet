@@ -8,7 +8,7 @@ import User from "./models/userModel.js";
 import connectDB from "./ConnectDB/connect.js";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config();
 
 // Initialize the express app
@@ -18,18 +18,19 @@ const port = 3042;
 
 // Enable CORS with specific origins, methods, and credentials
 // app.use((req, res, next) => {
-//   res.setHeader('Access-Control-Allow-Origin', 'https://secure-mock-wallet.vercel.app');
-//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-//   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+//   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+//   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
 //   res.setHeader('Access-Control-Allow-Credentials', 'true');
 //   next();
 // });
+
 app.use(
   cors({
     origin: ["http://localhost:5173", "https://secure-mock-wallet.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
-    headers: "Content-Type",
+    headers: ["Authorization", "Content-Type"],
   })
 );
 
