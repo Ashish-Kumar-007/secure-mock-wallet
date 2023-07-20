@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 async function connectDB() {
   // console.log(typeof process.env.CONNECTION_URL);
-  const uri = 'mongodb+srv://Ashish_NFThing:OSVlBAFwFSVsOTuH@cluster0.tcmf3.mongodb.net/?retryWrites=true&w=majority';
+  const uri = (process.env.CONNECTION_URL).toString;
   mongoose
     .connect(
       uri,
