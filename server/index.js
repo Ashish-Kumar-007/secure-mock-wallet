@@ -20,9 +20,10 @@ const port = 3042;
 // Enable CORS with specific origins, methods, and credentials
 app.use(
   cors({
-    origin: ["https://secure-mock-wallet.vercel.app", "http://localhost:5173"],
+    origin: ["http://localhost:5173/"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
+    headers: "Content-Type",
   })
 );
 
@@ -135,10 +136,8 @@ app.post("/transfer", async (req, res) => {
     const input = user.publicKey.toString();
     const numbers = input.split(",").map(Number);
     const publicKey = new Uint8Array(numbers);
-    const message = `This account belongs to ${publicKey} with wallet address ${fromAccount}`
-    const msgByte = utf8ToBytes(
-      message
-    );
+    const message = `This account belongs to ${publicKey} with wallet address ${fromAccount}`;
+    const msgByte = utf8ToBytes(message);
     const msgHash = keccak256(msgByte);
     console.log(message);
     const signature = {
@@ -149,7 +148,7 @@ app.post("/transfer", async (req, res) => {
     console.log(signature);
     const verifySign = secp256k1.verify(signature, msgHash, publicKey);
     console.log(verifySign);
-   
+
     if (user.walletAddress !== fromAccount) {
       res.status(401).json({ message: "Unauthorized" });
       return;
