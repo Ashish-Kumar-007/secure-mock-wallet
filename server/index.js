@@ -7,9 +7,8 @@ import bcrypt from "bcrypt";
 import User from "./models/userModel.js";
 import connectDB from "./ConnectDB/connect.js";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-
+import dotenv from 'dotenv';
 dotenv.config();
 
 // Initialize the express app
